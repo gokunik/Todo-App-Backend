@@ -14,35 +14,44 @@ const signUp = asyncHandler(async (req, res) => {
   password = passwordValidation.safeParse(password);
 
   if (!username.success || !password.success) {
-    const errors = {};
+    const errors = [];
     if (!username?.success) {
-      errors.username = [...username.error.issues];
+      errors.push(...username.error.issues);
     }
 
     if (!password?.success) {
-      errors.password = [...password.error.issues];
+      errors.push(...password.error.issues);
     }
 
-    return res.json(
-      new ApiResponse(400, "Input validation failed", {}, false, errors)
-    );
+    return res
+      .status(400)
+      .json(new ApiResponse(400, "Input validation failed", {}, false, errors));
   }
 
   username = username.data;
   password = password.data;
 
   if (username === password) {
-    return res.json(
-      new ApiResponse(400, "Username and password must not be same!", {}, false)
-    );
+    return res
+      .status(400)
+      .json(
+        new ApiResponse(
+          400,
+          "Username and password must not be same!",
+          {},
+          false
+        )
+      );
   }
 
   try {
     const user = await UserModel.findOne({ username });
     if (user) {
-      return res.json(
-        new ApiResponse(400, "User already exists!", { username }, false)
-      );
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(400, "User already exists!", { username }, false)
+        );
     }
 
     const newUser = await UserModel.create({ username, password });
@@ -130,7 +139,7 @@ const userLogin = asyncHandler(async (req, res) => {
         new ApiResponse(
           200,
           "User login successful!",
-          { id: user._id, username: user.username, todos: user.todos },
+          { id: user._id, username: user.username },
           true
         )
       );
